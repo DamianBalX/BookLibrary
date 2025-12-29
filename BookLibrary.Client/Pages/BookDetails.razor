@@ -1,0 +1,66 @@
+﻿@page "/book/{id:int}"
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@inject BookService bookService
+@inject NavigationManager Navigation
+
+<PageTitle>Szczegóły książki</PageTitle>
+
+<div class="book-details-container">
+    @if (book == null)
+    {
+        <p><em>Ładowanie szczegółów książki...</em></p>
+    }
+    else
+    {
+        <div class="book-details">
+            <button class="back-button" @onclick="GoBack">← Powrót do listy</button>
+
+            <div class="details-content">
+                <div class="details-cover">
+                    <img src="@book.CoverUrl" alt="@book.Title" />
+                </div>
+
+                <div class="details-info">
+                    <h1>@book.Title</h1>
+
+                    <div class="info-row">
+                        <span class="label">Autor:</span>
+                        <span class="value">@book.Author</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Gatunek:</span>
+                        <span class="value">@book.Genre</span>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="label">Rok wydania:</span>
+                        <span class="value">@book.Year</span>
+                    </div>
+
+                    <div class="description-section">
+                        <h3>Opis:</h3>
+                        <p>@book.Description</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Book? book;
+
+    protected override void OnInitialized()
+    {
+        book = bookService.GetBookById(Id);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/books");
+    }
+}

@@ -1,0 +1,158 @@
+﻿@page "/"
+@page "/books"
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+@inject BookService bookService
+@inject NavigationManager Navigation
+
+<PageTitle>BookLibrary - Biblioteka Książek</PageTitle>
+
+<div class="library-container">
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Odkryj Świat Literatury</h1>
+            <p class="hero-description">Przeglądaj kolekcję 20 starannie wyselekcjonowanych książek</p>
+        </div>
+    </section>
+
+    <!-- Filters Section -->
+    <section class="filters-container">
+        <div class="filters-wrapper">
+            <div class="filter-group">
+                <label class="filter-label">
+                    <span class="label-icon">🔍</span>
+                    <span>Szukaj po tytule lub autorze</span>
+                </label>
+                <input type="text"
+                       class="filter-input"
+                       placeholder="Wpisz frazę..."
+                       @bind="searchTerm"
+                       @bind:event="oninput" />
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">
+                    <span class="label-icon">📖</span>
+                    <span>Wybierz gatunek</span>
+                </label>
+                <select class="filter-select"
+                        @bind="selectedGenre"
+                        @bind:event="onchange">
+                    <option value="">Wszystkie gatunki</option>
+                    @foreach (var genre in availableGenres)
+                    {
+                        <option value="@genre">@genre</option>
+                    }
+                </select>
+            </div>
+
+            <button class="filter-action-btn primary" @onclick="ApplyFilters">
+                <span>Szukaj</span>
+            </button>
+            <button class="filter-action-btn secondary" @onclick="ClearFilters">
+                <span>Wyczyść</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Results Info -->
+    @if (filteredBooks != null && filteredBooks.Count > 0)
+    {
+        <div class="results-info">
+            <p>Znaleziono <strong>@filteredBooks.Count</strong> z @allBooks.Count książek</p>
+        </div>
+    }
+
+    <!-- Books Grid -->
+    <section class="books-section">
+        @if (filteredBooks == null)
+        {
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Ładowanie biblioteki...</p>
+            </div>
+        }
+        else if (filteredBooks.Count == 0)
+        {
+            <div class="empty-state">
+                <span class="empty-icon">📚</span>
+                <h3>Nie znaleziono książek</h3>
+                <p>Spróbuj zmienić kryteria wyszukiwania</p>
+                <button class="empty-action-btn" @onclick="ClearFilters">Pokaż wszystkie książki</button>
+            </div>
+        }
+        else
+        {
+            <div class="books-grid">
+                @foreach (var book in filteredBooks)
+                {
+                    <article class="book-card">
+                        <div class="book-cover-container">
+                            <img src="@book.CoverUrl" alt="@book.Title" class="book-cover" />
+                            <div class="book-overlay">
+                                <button class="overlay-btn" @onclick="@(() => NavigateToDetails(book.Id))">
+                                    Zobacz więcej
+                                </button>
+                            </div>
+                        </div>
+                        <div class="book-content">
+                            <h3 class="book-title">@book.Title</h3>
+                            <p class="book-author">@book.Author</p>
+                            <div class="book-meta">
+                                <span class="meta-badge genre">@book.Genre</span>
+                                <span class="meta-badge year">@book.Year</span>
+                            </div>
+                            <p class="book-excerpt">@book.Description</p>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+
+</div>
+
+@code {
+    private List<Book> allBooks = new();
+    private List<Book> filteredBooks = new();
+    private List<string> availableGenres = new();
+    private string searchTerm = string.Empty;
+    private string selectedGenre = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        allBooks = bookService.GetAllBooks();
+        filteredBooks = allBooks;
+        availableGenres = bookService.GetAllGenres();
+    }
+
+    private void ApplyFilters()
+    {
+        var result = allBooks;
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            result = bookService.SearchBooks(searchTerm);
+        }
+
+        if (!string.IsNullOrWhiteSpace(selectedGenre))
+        {
+            result = result.Where(b => b.Genre == selectedGenre).ToList();
+        }
+
+        filteredBooks = result;
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = string.Empty;
+        selectedGenre = string.Empty;
+        filteredBooks = allBooks;
+    }
+
+    private void NavigateToDetails(int bookId)
+    {
+        Navigation.NavigateTo($"/book/{bookId}");
+    }
+}
