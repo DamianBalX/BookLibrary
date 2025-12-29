@@ -63,10 +63,11 @@ BookLibrary.Client/
 # Uruchomienie projektu:
 
 1. Sklonuj repozytorium:
-git clone https://github.com/TWOJA-NAZWA/BookLibrary.git
+git clone https://github.com/DamianBalX/BookLibrary.git
+
 cd BookLibrary
 
-2. Otwórz projekt w Visual Studio:
+3. Otwórz projekt w Visual Studio:
 - Kliknij dwukrotnie na plik `BookLibrary.sln`
 
 3. Uruchom aplikację:
